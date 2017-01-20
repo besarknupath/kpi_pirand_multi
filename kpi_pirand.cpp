@@ -1,5 +1,5 @@
 /******************************************************************************
-  Copyright 2016
+  Copyright 2016-2017
   All rights reserved.
   KNUPATH Proprietary and Confidential
 
@@ -13,6 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
+#include <iomanip>
 
 int main(int argc, char* argv[])
 {
@@ -34,7 +35,7 @@ int main(int argc, char* argv[])
 
   // Output Info
   output << "Operating on " << cb.Size() << " clusters." << std::endl << std::endl;
-  output << "Iteration, World Size, coordsPerRank, # Samples, Iteration RunTime (Sec), Pi Value" << std::endl;
+  output << "Iteration, World Size,  coordsPerRank,        # Samples, Iteration RunTime (Sec), Pi Value" << std::endl;
 
   // Run Limit (10 = 1 billion per tdsp)
   // Current system only works on runLimit = 2
@@ -61,20 +62,29 @@ int main(int argc, char* argv[])
     kpi::HostConn hc =  cq.SubmitWithHostConn(
                           ctx.CreateLaunchConfig(
                             cb.Size(),
-				                    kpi::ProcGroup(cb),
+				            kpi::ProcGroup(cb),
                             kwa),
                            cb);
 
-    // Wait to receive a flit from RANK 0
-    std::vector<float> pi_estimate(1);
-    hc.ReceiveCount(pi_estimate);
+	// Packet format
+	struct receive_format
+	{
+		float pi_estimate;
+		uint32_t world_size;
+	} packet;
 
-    std::vector<int> world_size(1);
-    hc.ReceiveCount(world_size);
+    // Receive the estimate
+	std::vector<receive_format> packets(1);
+    hc.ReceiveCount(packets);
 
     // Output Run Info
-    output << i << ", " << (world_size[0]-1) << ", " << coordsPerRank << ",  " << double(coordsPerRank)*cb.Size()*8-1<< ",  "
-      << double(std::clock() - begin)/CLOCKS_PER_SEC << ",  " << pi_estimate[0] << std::endl;
+    output << std::setw(9) << i
+    	<< ", " << std::setw(10) << packets[0].world_size
+		<< ", " << std::setw(14) << coordsPerRank
+		<< ", " << std::setw(16) << long(coordsPerRank) * cb.Size() * 8
+		<< ", " << std::setw(16) << double(std::clock() - begin) / CLOCKS_PER_SEC
+		<< ", " << std::setw(14) << packets[0].pi_estimate
+		<< std::endl;
   }
 
   // Write total time it took to run program
