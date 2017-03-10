@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 
   // Run Limit (10 = 1 billion per tdsp)
   // Current system only works on runLimit = 2
-  int runLimit = 1;
+  int runLimit = 4;
 
   // Set first coordsPerRank to 1
   int coordsPerRank = 1;
