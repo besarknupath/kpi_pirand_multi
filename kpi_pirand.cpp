@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 
   // Write to an output file
   std::ofstream output;
-  output.open("example_output.csv");
+  output.open("/tmp/example_output.csv");
 
   // Output Info
   output << "Operating on " << cb.Size() << " clusters." << std::endl << std::endl;
